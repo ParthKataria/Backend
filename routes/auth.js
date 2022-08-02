@@ -23,9 +23,8 @@ router.post("/register", async (req, res) => {
 
 // Login for existing user
 router.post("/login", async (req, res) => {
-  const { username, password } = req.body;
   try {
-    const user = await User.findOne({ username: username });
+    const user = await User.findOne({ username: req.body.username });
     if (!user) {
       res.status(401).json("User does not exist");
       return;
@@ -33,8 +32,7 @@ router.post("/login", async (req, res) => {
 
     const hashedPassword = CryptoJS.AES.decrypt(user.password, process.env.KEY);
     const pass = hashedPassword.toString(CryptoJS.enc.Utf8);
-
-    if (pass != password) {
+    if (pass != req.body.password) {
       res.status(401).json("Wrong credentials");
       return;
     }
@@ -47,6 +45,7 @@ router.post("/login", async (req, res) => {
       { expiresIn: "1d" }
     );
     const { password, ...others } = user._doc;
+    // console.log({ ...others, accessToken });
     res.status(200).json({ ...others, accessToken });
   } catch (error) {
     res.status(401).json(error);
